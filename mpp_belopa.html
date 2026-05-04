@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" id="viewport-meta">
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="dns-prefetch" href="https://script.google.com">
+    <!-- Preload font ikon paling umum agar tidak muncul kotak -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>MPP Simpurisiang</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            position: fixed;
+            top: 0; left: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .frame {
+            width: 1920px;
+            height: 1080px;
+            border: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity, transform;
+            background: #000;
+        }
+
+        .frame.active {
+            opacity: 1;
+            z-index: 2;
+            pointer-events: auto;
+        }
+
+        .frame.inactive {
+            opacity: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #progress {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            z-index: 100;
+            transform: translateZ(0);
+        }
+        
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #0066cc, #0099ff);
+            transition: width 0.1s linear;
+            will-change: width;
+        }
+
+        #start {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            letter-spacing: 1px;
+            text-align: center;
+            transition: opacity 0.4s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        #start.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #start small {
+            font-size: 0.6em;
+            opacity: 0.85;
+            margin-top: 25px;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+    <div id="start">
+        <span>SISTEM DISPLAY <br>MPP SIMPURISIANG</span>
+        <small id="start-hint">Klik layar / tekan Enter untuk memulai</small>
+    </div>
+
+    <div id="progress"><div id="progress-bar"></div></div>
+    
+    <div id="screen">
+        <iframe id="frame1" class="frame active" allow="autoplay; fullscreen; encrypted-media" loading="eager"></iframe>
+        <iframe id="frame2" class="frame inactive" allow="autoplay; fullscreen; encrypted-media" loading="eager"></iframe>
+    </div>
+
+    <audio id="audio" loop preload="auto">
+        <source src="audio/musik_pelayanan.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        (function() {
+            // ==================== KONFIGURASI SLIDE ====================
+            const sites = [
+                { url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?tv=tv5", dur: 30000 },
+                { url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv3", dur: 30000 },
+				{ url: "https://script.google.com/macros/s/AKfycbxi8M2TlF07fyf42YqHLEeeTxGqIbSTtnRFUMtRhfroL1DqGAof21hNCXMJmMN7xkMU/exec?tv=DATA_IKM", dur: 60000 },
+				{ url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv1" , dur: 30000 },	
+                { url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?page=fasilitas", dur: 100000 },
+                { url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv2" , dur: 30000 },
+				
+            ];
+
+            // ==================== DETEKSI PERANGKAT ====================
+            const ua = navigator.userAgent.toLowerCase();
+            const isTV = /android/i.test(ua) && window.innerWidth >= 1280 && window.innerWidth > window.innerHeight && !/mobile/i.test(ua);
+            const isMobile = /android|iphone|ipod|mobile/i.test(ua) && window.innerWidth < 768 && !isTV;
+
+            // ==================== SKALA COVER ====================
+            const contentW = 1920, contentH = 1080;
+            const frames = document.querySelectorAll('.frame');
+
+            function updateScale() {
+                const scale = Math.max(window.innerWidth / contentW, window.innerHeight / contentH);
+                frames.forEach(f => {
+                    f.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                });
+            }
+            updateScale();
+            window.addEventListener('resize', updateScale);
+            window.addEventListener('orientationchange', () => setTimeout(updateScale, 200));
+
+            // ==================== ELEMEN ====================
+            const frame1 = document.getElementById('frame1');
+            const frame2 = document.getElementById('frame2');
+            const audio = document.getElementById('audio');
+            const bar = document.getElementById('progress-bar');
+            const startOverlay = document.getElementById('start');
+            const startHint = document.getElementById('start-hint');
+
+            audio.volume = 0.50;
+
+            let currentIdx = 0;
+            let activeFrame = frame1;
+            let inactiveFrame = frame2;
+            let running = false;
+            let cycleTimer = null;
+            let smartTimer = null;        
+            let clickInterval = null;
+            let nextReady = false;
+            let nextLoadHandler = null;
+            let activeMessageHandler = null;
+
+            // ==================== AUDIO ====================
+            function playAudio() {
+                if (audio.paused) {
+                    audio.play().catch(() => setTimeout(() => audio.play().catch(() => {}), 1500));
+                }
+            }
+
+            // ==================== FULLSCREEN ====================
+            function requestFullscreen() {
+                const el = document.documentElement;
+                if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+                else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+                else if (el.msRequestFullscreen) el.msRequestFullscreen();
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {});
+                }
+            }
+
+            // ==================== PROGRESS BAR ====================
+            function startProgress(duration) {
+                bar.style.transition = 'none';
+                bar.style.width = '0%';
+                bar.offsetHeight;
+                bar.style.transition = `width ${duration}ms linear`;
+                bar.style.width = '100%';
+            }
+
+            // ==================== PRELOAD NEXT SLIDE ====================
+            function preloadNext() {
+                const nextIdx = (currentIdx + 1) % sites.length;
+                const nextUrl = sites[nextIdx].url;
+                if (nextLoadHandler) inactiveFrame.removeEventListener('load', nextLoadHandler);
+                nextReady = false;
+                nextLoadHandler = () => {
+                    nextReady = true;
+                    if (cycleTimer === null && running) performSwap();
+                };
+                inactiveFrame.addEventListener('load', nextLoadHandler, { once: true });
+                inactiveFrame.src = nextUrl;
+            }
+
+            // ==================== PENERIMA SINYAL IFRAME ====================
+            function armEarlySwitch() {
+                if (activeMessageHandler) {
+                    window.removeEventListener('message', activeMessageHandler);
+                }
+                activeMessageHandler = (event) => {
+                    if (event.origin !== "https://script.google.com" && event.origin !== window.location.origin) {
+                        return;
+                    }
+                    if (event.data && event.data.action === "nextSlide") {
+                        const now = Date.now();
+                        if (!activeFrame._lastSwitchTime || (now - activeFrame._lastSwitchTime) > 5000) {
+                            if (cycleTimer) {
+                                clearTimeout(cycleTimer);
+                                cycleTimer = null;
+                            }
+                            if (smartTimer) {
+                                clearTimeout(smartTimer);
+                                smartTimer = null;
+                            }
+                            if (running) performSwap();
+                        }
+                    }
+                };
+                window.addEventListener('message', activeMessageHandler);
+                activeFrame._lastSwitchTime = Date.now();
+            }
+
+            // ==================== DURASI SLIDE TERTENTU ====================
+            function armSmartDuration(site) {
+                
+                if (!site.smartDur || !site.itemCount) return;                
+                const estimatedTime = (site.itemCount * 5000) + 10000;               
+                const smartTime = Math.min(Math.max(estimatedTime, 30000), site.dur);               
+                if (smartTimer) clearTimeout(smartTimer);
+                smartTimer = setTimeout(() => {                   
+                    const now = Date.now();
+                    if (nextReady && running && (!activeFrame._lastSwitchTime || (now - activeFrame._lastSwitchTime) > 5000)) {
+                        if (cycleTimer) {
+                            clearTimeout(cycleTimer);
+                            cycleTimer = null;
+                        }
+                        performSwap();
+                    }
+                   
+                }, smartTime);
+            }
+
+            // ==================== TRANSISI CROSSFADE ====================
+            function performSwap() {
+                if (!running) return;
+                if (clickInterval) { clearInterval(clickInterval); clickInterval = null; }
+                if (activeMessageHandler) {
+                    window.removeEventListener('message', activeMessageHandler);
+                    activeMessageHandler = null;
+                }
+                if (smartTimer) {
+                    clearTimeout(smartTimer);
+                    smartTimer = null;
+                }
+
+                inactiveFrame.classList.remove('inactive');
+                inactiveFrame.classList.add('active');
+                activeFrame.classList.remove('active');
+                activeFrame.classList.add('inactive');
+
+                const temp = activeFrame;
+                activeFrame = inactiveFrame;
+                inactiveFrame = temp;
+
+                currentIdx = (currentIdx + 1) % sites.length;
+                const currentSite = sites[currentIdx];
+
+                startProgress(currentSite.dur);
+
+                if (currentSite.click) {
+                    clickInterval = setInterval(() => {
+                        try { activeFrame.focus(); } catch(e) {}
+                    }, currentSite.click);
+                }
+
+                
+                armEarlySwitch();                
+                armSmartDuration(currentSite);
+
+                scheduleNextSlide(currentSite.dur);
+                preloadNext();
+            }
+
+            function scheduleNextSlide(duration) {
+                if (cycleTimer) clearTimeout(cycleTimer);
+                cycleTimer = setTimeout(() => {
+                    if (nextReady) performSwap();
+                    else cycleTimer = null;
+                }, duration);
+            }
+
+            // ==================== MULAI CYCLE ====================
+            function startCycle() {
+                if (running) return;
+                running = true;
+
+                const firstSite = sites[0];
+                activeFrame.src = firstSite.url;
+                function onFirstLoad() {
+                    activeFrame.removeEventListener('load', onFirstLoad);
+                    startProgress(firstSite.dur);
+                    playAudio();
+                    armEarlySwitch();
+                    armSmartDuration(firstSite);
+                    scheduleNextSlide(firstSite.dur);                    
+                    inactiveFrame.src = sites[1].url;
+                    nextLoadHandler = () => {
+                        nextReady = true;
+                        if (cycleTimer === null && running) performSwap();
+                    };
+                    inactiveFrame.addEventListener('load', nextLoadHandler, { once: true });
+                }
+                activeFrame.addEventListener('load', onFirstLoad, { once: true });
+            }
+
+            // ==================== INISIALISASI ====================
+            function init() {
+                requestFullscreen();
+                playAudio();
+                startOverlay.classList.add('hidden');
+                if (!running) startCycle();
+            }
+
+            // ==================== EVENT LISTENER ====================
+            startOverlay.addEventListener('click', init);
+            document.addEventListener('keydown', (e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && !running) {
+                    e.preventDefault();
+                    init();
+                }
+                if ((e.key === 'f' || e.key === 'F') && running) {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(() => {});
+                    } else {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+
+            if (isTV) {
+                startHint.textContent = 'Memulai otomatis untuk TV...';
+                setTimeout(() => {
+                    if (!running) init();
+                }, 2000);
+            }
+
+            if ('wakeLock' in navigator && isTV) {
+                navigator.wakeLock.request('screen').catch(() => {});
+            }
+
+            audio.addEventListener('error', () => setTimeout(() => audio.load(), 2000));
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && running) playAudio();
+            });
+            window.addEventListener('beforeunload', () => {
+                if (cycleTimer) clearTimeout(cycleTimer);
+                if (smartTimer) clearTimeout(smartTimer);
+                if (clickInterval) clearInterval(clickInterval);
+                if (activeMessageHandler) window.removeEventListener('message', activeMessageHandler);
+                audio.pause();
+            });
+
+            frames.forEach(f => {
+                f.addEventListener('error', () => {
+                    setTimeout(() => {
+                        if (f === activeFrame && running) f.src = sites[currentIdx].url;
+                        else if (f === inactiveFrame && running) preloadNext();
+                    }, 2000);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
