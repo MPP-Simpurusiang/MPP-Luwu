@@ -102,18 +102,29 @@
             pointer-events: none;
         }
 
+		        
+        .big-title {
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            color: #0066cc;
+            display: inline-block;
+            transform: translateY(-40px);
+            letter-spacing: 2px;
+        }
+		
+		
         #start small {
-            font-size: 0.6em;
+            font-size: 14px;
             opacity: 0.85;
             margin-top: 25px;
             font-weight: 300;
+			font-style: italic;
         }
     </style>
 </head>
 <body>
     <div id="start">
-        <span>SISTEM DISPLAY <br>MPP SIMPURISIANG</span>
-        <small id="start-hint">Tekan OK diremote untuk memulai</small>
+        <span class="big-title">SISTEM DISPLAY</span><br>MALL PELAYANAN PUBLIK SIMPURUSIANG<br>KABUPATEN LUWU</span>
+        <small id="start-hint">Tekan Tombol OK untuk memulai</small>
     </div>
 
     <div id="progress"><div id="progress-bar"></div></div>
@@ -131,15 +142,15 @@
         (function() {
             // ==================== KONFIGURASI SLIDE ====================
             const sites = [
-                { url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?tv=tv5", dur: 30000 },
-                { url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv3", dur: 30000 },
+				{ url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?tv=tv5", dur: 30000 },
+				{ url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv3", dur: 30000 },
 				{ url: "https://script.google.com/macros/s/AKfycbxi8M2TlF07fyf42YqHLEeeTxGqIbSTtnRFUMtRhfroL1DqGAof21hNCXMJmMN7xkMU/exec?tv=DATA_IKM", dur: 60000 },
 				{ url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv1" , dur: 30000 },	
-                { url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?page=fasilitas", dur: 150000, click: 4000, smartDur: true, itemCount: 14 },
-                { url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv2" , dur: 30000 },
-				
-            ];
-
+				{ url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?page=fasilitas", dur: 1700000, click: 4000, smartDur: true, itemCount: 14 },
+				{ url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv2" , dur: 30000 },			
+				{ url: "intro-profil.html", dur: 5000, stopMusic: true },			
+				{ url: "video.html", dur: 143000, stopMusic: true }
+			];
             // ==================== DETEKSI PERANGKAT ====================
             const ua = navigator.userAgent.toLowerCase();
             const isTV = /android/i.test(ua) && window.innerWidth >= 1280 && window.innerWidth > window.innerHeight && !/mobile/i.test(ua);
@@ -293,7 +304,12 @@
 
                 currentIdx = (currentIdx + 1) % sites.length;
                 const currentSite = sites[currentIdx];
-
+				if (currentSite.stopMusic) {
+                    audio.pause();
+                } else {
+                    playAudio();
+                }
+				
                 startProgress(currentSite.dur);
 
                 if (currentSite.click) {
@@ -328,7 +344,7 @@
                 function onFirstLoad() {
                     activeFrame.removeEventListener('load', onFirstLoad);
                     startProgress(firstSite.dur);
-                    playAudio();
+                    if (!firstSite.stopMusic) playAudio();
                     armEarlySwitch();
                     armSmartDuration(firstSite);
                     scheduleNextSlide(firstSite.dur);                    
@@ -344,11 +360,10 @@
 
             // ==================== INISIALISASI ====================
             function init() {
-                requestFullscreen();
-                playAudio();
-                startOverlay.classList.add('hidden');
-                if (!running) startCycle();
-            }
+				requestFullscreen();
+				startOverlay.classList.add('hidden');
+				if (!running) startCycle();
+			}
 
             // ==================== EVENT LISTENER ====================
             startOverlay.addEventListener('click', init);
@@ -379,8 +394,19 @@
 
             audio.addEventListener('error', () => setTimeout(() => audio.load(), 2000));
             document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && running) playAudio();
-            });
+				    if (!document.hidden && running) {
+                    if (!sites[currentIdx].stopMusic) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                        setTimeout(playAudio, 100);
+                    }
+                    updateScale();
+                    if (isTV) {
+                        setTimeout(requestFullscreen, 500);
+                    }
+                }
+			});
+			
             window.addEventListener('beforeunload', () => {
                 if (cycleTimer) clearTimeout(cycleTimer);
                 if (smartTimer) clearTimeout(smartTimer);
@@ -396,6 +422,41 @@
                         else if (f === inactiveFrame && running) preloadNext();
                     }, 2000);
                 });
+            });
+			            // === TAMBAHAN: Exit dengan Tombol Escape (Keyboard / Remote TV) ===
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && running) {
+                    if (document.fullscreenElement || document.webkitFullscreenElement) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+
+            // === TAMBAHAN: Exit dengan Long‑Press 2 Detik di Layar Sentuh ===
+            let pressTimer = null;
+            document.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    if (running) {
+                        if (document.fullscreenElement || document.webkitFullscreenElement) {
+                            document.exitFullscreen();
+                        }
+                        startOverlay.classList.remove('hidden');
+                    }
+                }, 2000);
+            });
+            document.addEventListener('touchend', () => {
+                if (pressTimer) clearTimeout(pressTimer);
+            });
+            document.addEventListener('touchmove', () => {
+                if (pressTimer) clearTimeout(pressTimer);
+            });
+			            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    // Halaman dimuat dari cache (HP mati lalu nyala)
+                    updateScale();
+                    if (isTV) setTimeout(requestFullscreen, 500);
+                    if (running) playAudio();
+                }
             });
         })();
     </script>
