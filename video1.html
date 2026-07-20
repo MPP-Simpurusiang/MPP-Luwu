@@ -1,1 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body, html { width:100vw; height:100vh; overflow:hidden; background:#000; }
+        video {
+            width:100vw; height:100vh;
+            object-fit: contain;
+            background:#000;
+        }
+        
+        
+        #audioWarning {
+            display: none;
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(220, 38, 38, 0.9); /* Merah transparan */
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            font-size: 1.5vw;
+            z-index: 9999;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            animation: fadeInOut 5s forwards;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="audioWarning">⚠️ Suara diblokir oleh TV. Admin: Mohon KLIK layar utama agar suara muncul!</div>
 
+    
+    <video id="myVideo" playsinline preload="auto">
+        <source src="video/profil1.mp4" type="video/mp4">
+    </video>
+    
+    <script>
+        const v = document.getElementById('myVideo');       
+        const warning = document.getElementById('audioWarning');
+        
+       
+        v.addEventListener('ended', () => {
+            window.parent.postMessage({action: 'nextSlide'}, '*');
+        });
+        
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.action === 'play') {
+                v.currentTime = 0; 
+                v.muted = false; 
+                
+                let playPromise = v.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((error) => {
+                        console.warn("TV memblokir suara karena belum diklik.");
+                        
+                        
+                        warning.style.display = 'block';
+                        
+                        
+                        setTimeout(() => {
+                            warning.style.display = 'none';
+                        }, 8000);
+                        
+                        
+                        v.muted = true;
+                        v.play().catch(e => console.error("Gagal putar video:", e));
+                    });
+                }
+            } else if (event.data && event.data.action === 'stop') {
+                v.pause(); 
+            }
+        });
+    </script>
+</body>
+</html>
