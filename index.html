@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=1920, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" id="viewport-meta">
     <link rel="preconnect" href="https://script.google.com">
     <link rel="dns-prefetch" href="https://script.google.com">
-    <!-- Preload font ikon paling umum agar tidak muncul kotak -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>MPP Simpurisiang</title>
@@ -123,7 +122,7 @@
 </head>
 <body>
     <div id="start">
-        <span class="big-title">SISTEM DISPLAY</span><br>MALL PELAYANAN PUBLIK SIMPURUSIANG<br>KABUPATEN LUWU</span>
+        <span class="big-title">SISTEM DISPLAY</span><br>MALL PELAYANAN PUBLIK SIMPURUSIANG<br>KABUPATEN LUWU<br>
         <small id="start-hint">Tekan Tombol OK untuk memulai</small>
     </div>
 
@@ -139,25 +138,31 @@
     </audio>
 
     <script>
-        (function() {
-            // ==================== KONFIGURASI SLIDE ====================
+        (function() {           
+            
             const sites = [
-				{ url: "profil1.html", dur: 127000, stopMusic: true },
+				{ url: "video1.html", dur: 130000, stopMusic: true }, 
 				{ url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?tv=tv5", dur: 30000 },
 				{ url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv3", dur: 30000 },
 				{ url: "https://script.google.com/macros/s/AKfycbxi8M2TlF07fyf42YqHLEeeTxGqIbSTtnRFUMtRhfroL1DqGAof21hNCXMJmMN7xkMU/exec?tv=DATA_IKM", dur: 60000 },
+				
+                
+                
+                { url: "kuesioner.html", dur: 65000 }, 
+                
+
 				{ url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv1" , dur: 30000 },	
 				{ url: "https://script.google.com/macros/s/AKfycbxXXYprxf_gtzw90dRKs7r9EsBMkQZvP3Wer3zt8_D0Z_owWx0VKctauwv6EYFfV5Oe/exec?page=fasilitas", dur: 170000, click: 4000, smartDur: true, itemCount: 14 },
 				{ url: "https://script.google.com/macros/s/AKfycbx6VDuPAnutYslvNHz_x4nNP8MHY5vVhuoc81xTCSrp_ZBi4PZf_3xyl_YO9EHwxrqg/exec?tv=tv2" , dur: 30000 },			
 				{ url: "intro-profil.html", dur: 5000, stopMusic: true },			
-				{ url: "video.html", dur: 143000, stopMusic: true }
+				{ url: "video.html", dur: 155000, stopMusic: true } 
 			];
-            // ==================== DETEKSI PERANGKAT ====================
+            
             const ua = navigator.userAgent.toLowerCase();
             const isTV = /android/i.test(ua) && window.innerWidth >= 1280 && window.innerWidth > window.innerHeight && !/mobile/i.test(ua);
             const isMobile = /android|iphone|ipod|mobile/i.test(ua) && window.innerWidth < 768 && !isTV;
 
-            // ==================== SKALA COVER ====================
+            
             const contentW = 1920, contentH = 1080;
             const frames = document.querySelectorAll('.frame');
 
@@ -171,7 +176,7 @@
             window.addEventListener('resize', updateScale);
             window.addEventListener('orientationchange', () => setTimeout(updateScale, 200));
 
-            // ==================== ELEMEN ====================
+            
             const frame1 = document.getElementById('frame1');
             const frame2 = document.getElementById('frame2');
             const audio = document.getElementById('audio');
@@ -192,14 +197,14 @@
             let nextLoadHandler = null;
             let activeMessageHandler = null;
 
-            // ==================== AUDIO ====================
+            
             function playAudio() {
                 if (audio.paused) {
                     audio.play().catch(() => setTimeout(() => audio.play().catch(() => {}), 1500));
                 }
             }
 
-            // ==================== FULLSCREEN ====================
+            
             function requestFullscreen() {
                 const el = document.documentElement;
                 if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
@@ -210,7 +215,7 @@
                 }
             }
 
-            // ==================== PROGRESS BAR ====================
+            
             function startProgress(duration) {
                 bar.style.transition = 'none';
                 bar.style.width = '0%';
@@ -219,7 +224,7 @@
                 bar.style.width = '100%';
             }
 
-            // ==================== PRELOAD NEXT SLIDE ====================
+            
             function preloadNext() {
                 const nextIdx = (currentIdx + 1) % sites.length;
                 const nextUrl = sites[nextIdx].url;
@@ -233,7 +238,7 @@
                 inactiveFrame.src = nextUrl;
             }
 
-            // ==================== PENERIMA SINYAL IFRAME ====================
+            
             function armEarlySwitch() {
                 if (activeMessageHandler) {
                     window.removeEventListener('message', activeMessageHandler);
@@ -261,9 +266,8 @@
                 activeFrame._lastSwitchTime = Date.now();
             }
 
-            // ==================== DURASI SLIDE TERTENTU ====================
+            
             function armSmartDuration(site) {
-                
                 if (!site.smartDur || !site.itemCount) return;                
                 const estimatedTime = (site.itemCount * 5000) + 10000;               
                 const smartTime = Math.min(Math.max(estimatedTime, 30000), site.dur);               
@@ -277,11 +281,10 @@
                         }
                         performSwap();
                     }
-                   
                 }, smartTime);
             }
 
-            // ==================== TRANSISI CROSSFADE ====================
+            
             function performSwap() {
                 if (!running) return;
                 if (clickInterval) { clearInterval(clickInterval); clickInterval = null; }
@@ -302,6 +305,11 @@
                 const temp = activeFrame;
                 activeFrame = inactiveFrame;
                 inactiveFrame = temp;
+                
+                try {
+                    activeFrame.contentWindow.postMessage({action: 'play'}, '*');
+                    inactiveFrame.contentWindow.postMessage({action: 'stop'}, '*');
+                } catch(e) {}
 
                 currentIdx = (currentIdx + 1) % sites.length;
                 const currentSite = sites[currentIdx];
@@ -319,7 +327,6 @@
                     }, currentSite.click);
                 }
 
-                
                 armEarlySwitch();                
                 armSmartDuration(currentSite);
 
@@ -335,7 +342,7 @@
                 }, duration);
             }
 
-            // ==================== MULAI CYCLE ====================
+            
             function startCycle() {
                 if (running) return;
                 running = true;
@@ -344,6 +351,10 @@
                 activeFrame.src = firstSite.url;
                 function onFirstLoad() {
                     activeFrame.removeEventListener('load', onFirstLoad);
+                    
+                    
+                    try { activeFrame.contentWindow.postMessage({action: 'play'}, '*'); } catch(e) {}
+
                     startProgress(firstSite.dur);
                     if (!firstSite.stopMusic) playAudio();
                     armEarlySwitch();
@@ -359,20 +370,25 @@
                 activeFrame.addEventListener('load', onFirstLoad, { once: true });
             }
 
-            // ==================== INISIALISASI ====================
+            
             function init() {
 				requestFullscreen();
 				startOverlay.classList.add('hidden');
 				if (!running) startCycle();
 			}
 
-            // ==================== EVENT LISTENER ====================
+            
             startOverlay.addEventListener('click', init);
+            
+            
             document.addEventListener('keydown', (e) => {
+                
                 if ((e.key === 'Enter' || e.key === ' ') && !running) {
                     e.preventDefault();
                     init();
                 }
+                
+                
                 if ((e.key === 'f' || e.key === 'F') && running) {
                     if (!document.fullscreenElement) {
                         document.documentElement.requestFullscreen().catch(() => {});
@@ -380,10 +396,36 @@
                         document.exitFullscreen();
                     }
                 }
+
+                
+                if (e.key === 'ArrowRight' && running) {
+                    
+                    if (nextReady) {
+                        console.log("Admin Skip: Mempercepat ke slide berikutnya...");
+                        
+                       
+                        if (cycleTimer) {
+                            clearTimeout(cycleTimer);
+                            cycleTimer = null;
+                        }
+                        if (smartTimer) {
+                            clearTimeout(smartTimer);
+                            smartTimer = null;
+                        }
+                        
+                        
+                        performSwap();
+                    } else {
+                        
+                        console.log("Sabar Bos, slide berikutnya sedang proses muat (loading)...");
+                    }
+                }
+                
             });
 
             if (isTV) {
                 startHint.textContent = 'Memulai otomatis untuk TV...';
+
                 setTimeout(() => {
                     if (!running) init();
                 }, 2000);
@@ -395,7 +437,7 @@
 
             audio.addEventListener('error', () => setTimeout(() => audio.load(), 2000));
             document.addEventListener('visibilitychange', () => {
-				    if (!document.hidden && running) {
+				if (!document.hidden && running) {
                     if (!sites[currentIdx].stopMusic) {
                         audio.pause();
                         audio.currentTime = 0;
@@ -424,7 +466,7 @@
                     }, 2000);
                 });
             });
-			            // === TAMBAHAN: Exit dengan Tombol Escape (Keyboard / Remote TV) ===
+			
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && running) {
                     if (document.fullscreenElement || document.webkitFullscreenElement) {
@@ -433,7 +475,7 @@
                 }
             });
 
-            // === TAMBAHAN: Exit dengan Long‑Press 2 Detik di Layar Sentuh ===
+            
             let pressTimer = null;
             document.addEventListener('touchstart', (e) => {
                 pressTimer = setTimeout(() => {
@@ -451,9 +493,8 @@
             document.addEventListener('touchmove', () => {
                 if (pressTimer) clearTimeout(pressTimer);
             });
-			            window.addEventListener('pageshow', (event) => {
+			window.addEventListener('pageshow', (event) => {
                 if (event.persisted) {
-                    // Halaman dimuat dari cache (HP mati lalu nyala)
                     updateScale();
                     if (isTV) setTimeout(requestFullscreen, 500);
                     if (running) playAudio();
