@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body, html { width:100vw; height:100vh; overflow:hidden; background:#000; }
+        video {
+            width:100vw; height:100vh;
+            object-fit: contain;
+            background:#000;
+        }
+    </style>
+</head>
+<body>
+    
+    <video id="myVideo" playsinline preload="auto">
+        <source src="video/kuesioner.mp4" type="video/mp4">
+    </video>
+    
+    <script>
+        const v = document.getElementById('myVideo');       
+        
+        
+        v.addEventListener('ended', () => {
+            window.parent.postMessage({action: 'nextSlide'}, '*');
+        });
+        
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.action === 'play') {
+                v.currentTime = 0; 
+                v.muted = false; 
+                
+                let playPromise = v.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((error) => {
+                        console.warn("TV memblokir autoplay bersuara. Mengaktifkan mode bisu agar layar tidak gelap.");
+                        
+                         
+                        
+                        v.muted = true;
+                        
+                        
+                        v.play().catch(e => console.error("Gagal memutar video: ", e));
+                    });
+                }
+            } else if (event.data && event.data.action === 'stop') {
+                v.pause(); 
+            }
+        });
+    </script>
+</body>
+</html>
